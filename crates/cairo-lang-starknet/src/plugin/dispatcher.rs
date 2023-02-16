@@ -71,7 +71,7 @@ pub fn handle_trait(db: &dyn SyntaxGroup, trait_ast: ast::ItemTrait) -> PluginRe
                         ),
                         HashMap::from([(
                             "arg_name".to_string(),
-                            RewriteNode::Trimmed(param.name(db).as_syntax_node()),
+                            RewriteNode::new_trimmed(param.name(db).as_syntax_node()),
                         )]),
                     ));
                 }

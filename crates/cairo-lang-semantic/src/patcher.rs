@@ -5,18 +5,31 @@ use cairo_lang_filesystem::span::{TextOffset, TextSpan, TextWidth};
 use cairo_lang_syntax::node::db::SyntaxGroup;
 use cairo_lang_syntax::node::{SyntaxNode, TypedSyntaxNode};
 use cairo_lang_utils::extract_matches;
+use itertools::{chain, Itertools};
+
+// TODO(yg): split to 4 PRs: 1. support right/left trimmed nodes. 2.
+// support modifying trimmed nodes. 3. fix contract code to not copy mut modifier. 4. use mut param
+// in Cairo contract.
 
 /// Interface for modifying syntax nodes.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum RewriteNode {
     /// A rewrite node that represents a trimmed copy of a syntax node:
     /// one with the leading and trailing trivia excluded.
-    Trimmed(SyntaxNode),
+    Trimmed {
+        node: SyntaxNode,
+        trim_left: bool,
+        trim_right: bool,
+    },
     Copied(SyntaxNode),
     Modified(ModifiedNode),
     Text(String),
 }
 impl RewriteNode {
+    pub fn new_trimmed(syntax_node: SyntaxNode) -> Self {
+        Self::Trimmed { node: syntax_node, trim_left: true, trim_right: true }
+    }
+
     /// Creates a rewrite node from an AST object.
     pub fn from_ast<T: TypedSyntaxNode>(node: &T) -> Self {
         RewriteNode::Copied(node.as_syntax_node())
@@ -31,8 +44,47 @@ impl RewriteNode {
                 });
                 extract_matches!(self, RewriteNode::Modified)
             }
-            RewriteNode::Trimmed(_) => {
-                panic!("Not supported.")
+            RewriteNode::Trimmed { node, trim_left, trim_right } => {
+                let mut original_children = node
+                    .children(db)
+                    .filter(|child| child.width(db) != TextWidth::default())
+                    .collect_vec();
+                let n = original_children.len();
+                if n == 0 {
+                    *self = RewriteNode::Modified(ModifiedNode { children: vec![] });
+                    return extract_matches!(self, RewriteNode::Modified);
+                }
+                if n == 1 {
+                    *self = RewriteNode::Trimmed {
+                        node: original_children.pop().unwrap(),
+                        trim_left: *trim_left,
+                        trim_right: *trim_right,
+                    };
+                    return extract_matches!(self, RewriteNode::Modified);
+                }
+                let orig_right_child = original_children.pop().unwrap();
+                let mut middle_iter = original_children.into_iter();
+                let orig_left_child = middle_iter.next().unwrap();
+                let left_child = RewriteNode::Trimmed {
+                    node: orig_left_child,
+                    trim_left: *trim_left,
+                    trim_right: false,
+                };
+                let middle_children = middle_iter.map(|node| RewriteNode::Copied(node));
+                let right_child = RewriteNode::Trimmed {
+                    node: orig_right_child,
+                    trim_left: false,
+                    trim_right: *trim_right,
+                };
+                *self = RewriteNode::Modified(ModifiedNode {
+                    children: chain!(
+                        vec![left_child].into_iter(),
+                        middle_children,
+                        vec![right_child].into_iter()
+                    )
+                    .collect(),
+                });
+                extract_matches!(self, RewriteNode::Modified)
             }
             RewriteNode::Modified(modified) => modified,
             RewriteNode::Text(_) => {
@@ -155,7 +207,9 @@ impl<'a> PatchBuilder<'a> {
     pub fn add_modified(&mut self, node: RewriteNode) {
         match node {
             RewriteNode::Copied(node) => self.add_node(node),
-            RewriteNode::Trimmed(node) => self.add_trimmed_node(node),
+            RewriteNode::Trimmed { node, trim_left, trim_right } => {
+                self.add_trimmed_node(node, trim_left, trim_right)
+            }
             RewriteNode::Modified(modified) => {
                 for child in modified.children {
                     self.add_modified(child)
@@ -175,8 +229,12 @@ impl<'a> PatchBuilder<'a> {
         self.code += node.get_text(self.db).as_str();
     }
 
-    pub fn add_trimmed_node(&mut self, node: SyntaxNode) {
-        let origin_span = node.span_without_trivia(self.db);
+    fn add_trimmed_node(&mut self, node: SyntaxNode, trim_left: bool, trim_right: bool) {
+        let TextSpan { start: trimmed_start, end: trimmed_end } = node.span_without_trivia(self.db);
+        let orig_start = if trim_left { trimmed_start } else { node.span(self.db).start };
+        let orig_end = if trim_right { trimmed_end } else { node.span(self.db).end };
+        let origin_span = TextSpan { start: orig_start, end: orig_end };
+
         let text = node.get_text_of_span(self.db, origin_span);
         let start = TextOffset::default().add_width(TextWidth::from_str(&self.code));
 

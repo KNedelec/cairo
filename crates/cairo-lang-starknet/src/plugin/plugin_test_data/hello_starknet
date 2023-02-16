@@ -10,7 +10,8 @@ mod HelloStarknet {
 
     // Increases the balance by the given amount.
     #[external]
-    fn increase_balance(amount: felt) {
+    fn increase_balance(mut amount: felt) {
+        amount += 1;
         balance::write(balance::read() + amount);
     }
 
@@ -29,7 +30,8 @@ mod HelloStarknet {
 
     // Increases the balance by the given amount.
     #[external]
-    fn increase_balance(amount: felt) {
+    fn increase_balance(mut amount: felt) {
+        amount += 1;
         balance::write(balance::read() + amount);
     }
 

@@ -19,6 +19,7 @@ use super::consts::{
 use super::entry_point::generate_entry_point_wrapper;
 use super::events::handle_event;
 use super::storage::handle_storage_struct;
+use super::utils::is_mut_param;
 use crate::plugin::aux_data::StarkNetContractAuxData;
 
 /// If the module is annotated with CONTRACT_ATTR, generate the relevant contract logic.
@@ -105,6 +106,7 @@ pub fn handle_mod(db: &dyn SyntaxGroup, module_ast: ast::ItemModule) -> PluginRe
                 };
 
                 let declaration = item_function.declaration(db);
+                println!("yg function {}", declaration.name(db).text(db));
                 if let OptionWrappedGenericParamList::WrappedGenericParamList(generic_params) =
                     declaration.generic_params(db)
                 {
@@ -113,10 +115,25 @@ pub fn handle_mod(db: &dyn SyntaxGroup, module_ast: ast::ItemModule) -> PluginRe
                         stable_ptr: generic_params.stable_ptr().untyped(),
                     })
                 }
+                let mut declaration_node = RewriteNode::new_trimmed(declaration.as_syntax_node());
+                let original_parameters = declaration_node
+                    .modify_child(db, ast::FunctionDeclaration::INDEX_SIGNATURE)
+                    .modify_child(db, ast::FunctionSignature::INDEX_PARAMETERS);
+                for (param_idx, param) in
+                    declaration.signature(db).parameters(db).elements(db).iter().enumerate()
+                {
+                    // TODO(yuval): this assumes `mut` can only appear alone.
+                    if is_mut_param(db, &param) {
+                        original_parameters
+                            .modify_child(db, param_idx * 2)
+                            .modify_child(db, ast::Param::INDEX_MODIFIERS)
+                            .set_str("".to_string());
+                    }
+                }
                 abi_functions.push(RewriteNode::Modified(ModifiedNode {
                     children: vec![
                         RewriteNode::Text(format!("#[{attr}]\n        ")),
-                        RewriteNode::Trimmed(declaration.as_syntax_node()),
+                        declaration_node,
                         RewriteNode::Text(";\n        ".to_string()),
                     ],
                 }));
@@ -191,7 +208,10 @@ pub fn handle_mod(db: &dyn SyntaxGroup, module_ast: ast::ItemModule) -> PluginRe
         )
         .as_str(),
         HashMap::from([
-            ("contract_name".to_string(), RewriteNode::Trimmed(module_name_ast.as_syntax_node())),
+            (
+                "contract_name".to_string(),
+                RewriteNode::new_trimmed(module_name_ast.as_syntax_node()),
+            ),
             (
                 "original_items".to_string(),
                 RewriteNode::Modified(ModifiedNode { children: kept_original_items }),
