@@ -3,8 +3,8 @@ use cairo_lang_utils::unordered_hash_map::UnorderedHashMap;
 use super::uint::Uint16Type;
 use crate::define_libfunc_hierarchy;
 use crate::extensions::lib_func::{
-    LibfuncSignature, OutputVarInfo, SierraApChange, SignatureOnlyGenericLibfunc,
-    SignatureSpecializationContext,
+    BranchSignature, LibfuncSignature, OutputVarInfo, ParamSignature, SierraApChange,
+    SignatureOnlyGenericLibfunc, SignatureSpecializationContext,
 };
 use crate::extensions::uint::{Uint32Type, Uint64Type, Uint8Type};
 use crate::extensions::uint128::Uint128Type;
@@ -16,6 +16,7 @@ use crate::program::GenericArg;
 
 define_libfunc_hierarchy! {
     pub enum CastLibfunc {
+        Downcast(DowncastLibfunc),
         Upcast(UpcastLibfunc),
     }, CastConcreteLibfunc
 }
@@ -71,5 +72,52 @@ impl SignatureOnlyGenericLibfunc for UpcastLibfunc {
             }],
             SierraApChange::Known { new_vars_only: true },
         ))
+    }
+}
+
+/// Libfunc for casting from one type to another where the input value may not fit into the
+/// destination type. For example, from u64 to u8.
+#[derive(Default)]
+pub struct DowncastLibfunc {}
+impl SignatureOnlyGenericLibfunc for DowncastLibfunc {
+    const STR_ID: &'static str = "downcast";
+
+    fn specialize_signature(
+        &self,
+        context: &dyn SignatureSpecializationContext,
+        args: &[GenericArg],
+    ) -> Result<LibfuncSignature, SpecializationError> {
+        let (from_ty, to_ty) = args_as_two_types(args)?;
+
+        let type_to_n_bits = get_type_to_nbits_map(context);
+        let from_nbits =
+            type_to_n_bits.get(&from_ty).ok_or(SpecializationError::UnsupportedGenericArg)?;
+        let to_nbits =
+            type_to_n_bits.get(&to_ty).ok_or(SpecializationError::UnsupportedGenericArg)?;
+
+        let is_valid = from_nbits >= to_nbits;
+        if !is_valid {
+            return Err(SpecializationError::UnsupportedGenericArg);
+        }
+
+        Ok(LibfuncSignature {
+            param_signatures: vec![ParamSignature::new(from_ty)],
+            branch_signatures: vec![
+                // Success.
+                BranchSignature {
+                    vars: vec![OutputVarInfo {
+                        ty: to_ty,
+                        ref_info: OutputVarReferenceInfo::SameAsParam { param_idx: 0 },
+                    }],
+                    ap_change: SierraApChange::Known { new_vars_only: false },
+                },
+                // Failure.
+                BranchSignature {
+                    vars: vec![],
+                    ap_change: SierraApChange::Known { new_vars_only: false },
+                },
+            ],
+            fallthrough: Some(0),
+        })
     }
 }

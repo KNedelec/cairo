@@ -27,3 +27,23 @@ store_temp<u64>([1]) -> ([2]);
 return([2]);
 
 test::foo@0([0]: u16) -> (u64);
+
+//! > ==========================================================================
+
+//! > u64 to u16 downcast
+
+//! > test_function_name
+run_small_e2e_test
+
+//! > cairo
+fn foo(a: u64) -> Option::<u16> {
+    downcast(a)
+}
+
+//! > casm
+ret;
+
+//! > function_costs
+test::foo: OrderedHashMap({Const: 100})
+
+//! > sierra_code

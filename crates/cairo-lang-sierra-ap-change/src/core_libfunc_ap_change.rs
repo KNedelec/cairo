@@ -80,6 +80,7 @@ pub fn core_libfunc_ap_change<InfoProvider: InvocationApChangeInfoProvider>(
             BuiltinCostConcreteLibfunc::GetBuiltinCosts(_) => vec![ApChange::Known(3)],
         },
         CoreConcreteLibfunc::Cast(libfunc) => match libfunc {
+            CastConcreteLibfunc::Downcast(_) => vec![ApChange::Known(0), ApChange::Known(0)], /* TODO */
             CastConcreteLibfunc::Upcast(_) => vec![ApChange::Known(0)],
         },
         CoreConcreteLibfunc::Ec(libfunc) => match libfunc {

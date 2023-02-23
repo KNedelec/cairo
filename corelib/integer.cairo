@@ -975,3 +975,7 @@ impl U128TryIntoU64 of TryInto::<u128, u64> {
 // TODO(lior): Restrict the function (using traits) in the high-level compiler so that wrong types
 //   will not lead to Sierra errors.
 extern fn upcast<FromType, ToType>(x: FromType) -> ToType nopanic;
+
+// TODO(lior): Restrict the function (using traits) in the high-level compiler so that wrong types
+//   will not lead to Sierra errors.
+extern fn downcast<FromType, ToType>(x: FromType) -> Option::<ToType> nopanic;

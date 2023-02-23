@@ -279,6 +279,7 @@ mod ecdsa;
 
 // Integer.
 mod integer;
+use integer::downcast;
 use integer::u128;
 use integer::u128_const;
 use integer::u128_sqrt;

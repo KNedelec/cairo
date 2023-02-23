@@ -172,6 +172,7 @@ pub fn core_libfunc_postcost<Ops: CostOperations, InfoProvider: InvocationCostIn
         Bool(BoolConcreteLibfunc::Or(_)) => vec![ops.steps(2)],
         Bool(BoolConcreteLibfunc::Equal(_)) => vec![ops.steps(2), ops.steps(3)],
         Cast(libfunc) => match libfunc {
+            CastConcreteLibfunc::Downcast(_) => vec![ops.steps(0), ops.steps(0)], /* TODO: include range check. */
             CastConcreteLibfunc::Upcast(_) => vec![ops.steps(0)],
         },
         Ec(libfunc) => match libfunc {
