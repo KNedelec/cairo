@@ -8,7 +8,7 @@ type Pedersen = Pedersen;
 type BuiltinCosts = BuiltinCosts;
 type Unit = Struct<ut@Tuple>;
 
-libfunc revoke_ap_tracking = revoke_ap_tracking;
+libfunc disable_ap_tracking = disable_ap_tracking;
 libfunc dup<felt> = dup<felt>;
 libfunc felt_is_zero = felt_is_zero;
 libfunc branch_align = branch_align;
@@ -39,7 +39,7 @@ libfunc function_call<user@hash_chain_gas::hash_chain_gas::hash_chain> = functio
 libfunc enum_match<core::PanicResult::<core::felt>> = enum_match<core::PanicResult::<core::felt>>;
 libfunc pedersen = pedersen;
 
-revoke_ap_tracking() -> ();
+disable_ap_tracking() -> ();
 dup<felt>([3]) -> ([3], [5]);
 felt_is_zero([5]) { fallthrough() 12([4]) };
 branch_align() -> ();

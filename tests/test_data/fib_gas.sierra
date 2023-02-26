@@ -5,7 +5,7 @@ type Array<felt> = Array<felt>;
 type core::PanicResult::<core::felt> = Enum<ut@core::PanicResult::<core::felt>, felt, Array<felt>>;
 type NonZero<felt> = NonZero<felt>;
 
-libfunc revoke_ap_tracking = revoke_ap_tracking;
+libfunc disable_ap_tracking = disable_ap_tracking;
 libfunc try_fetch_gas = try_fetch_gas;
 libfunc branch_align = branch_align;
 libfunc store_temp<RangeCheck> = store_temp<RangeCheck>;
@@ -28,7 +28,7 @@ libfunc function_call<user@fib_gas::fib_gas::fib> = function_call<user@fib_gas::
 libfunc enum_match<core::PanicResult::<core::felt>> = enum_match<core::PanicResult::<core::felt>>;
 libfunc enum_init<core::PanicResult::<core::felt>, 0> = enum_init<core::PanicResult::<core::felt>, 0>;
 
-revoke_ap_tracking() -> ();
+disable_ap_tracking() -> ();
 try_fetch_gas([0], [1]) { fallthrough([5], [6]) 6([7], [8]) };
 branch_align() -> ();
 store_temp<RangeCheck>([5]) -> ([9]);

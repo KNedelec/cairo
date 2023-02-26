@@ -39,7 +39,7 @@ type GasBuiltin = GasBuiltin;
 type Unit = Struct<ut@Tuple>;
 type core::option::Option::<()> = Enum<ut@core::option::Option::<()>, Unit, Unit>;
 
-libfunc revoke_ap_tracking = revoke_ap_tracking;
+libfunc disable_ap_tracking = disable_ap_tracking;
 libfunc dup<BuiltinCosts> = dup<BuiltinCosts>;
 libfunc try_fetch_gas_all = try_fetch_gas_all;
 libfunc branch_align = branch_align;
@@ -57,7 +57,7 @@ libfunc store_temp<BuiltinCosts> = store_temp<BuiltinCosts>;
 libfunc function_call<user@test::foo> = function_call<user@test::foo>;
 libfunc rename<core::option::Option::<()>> = rename<core::option::Option::<()>>;
 
-revoke_ap_tracking() -> ();
+disable_ap_tracking() -> ();
 dup<BuiltinCosts>([2]) -> ([2], [7]);
 try_fetch_gas_all([0], [1], [7]) { fallthrough([3], [4]) 9([5], [6]) };
 branch_align() -> ();
@@ -141,7 +141,7 @@ type core::option::Option::<()> = Enum<ut@core::option::Option::<()>, Unit, Unit
 type Pedersen = Pedersen;
 type felt = felt;
 
-libfunc revoke_ap_tracking = revoke_ap_tracking;
+libfunc disable_ap_tracking = disable_ap_tracking;
 libfunc dup<BuiltinCosts> = dup<BuiltinCosts>;
 libfunc try_fetch_gas_all = try_fetch_gas_all;
 libfunc branch_align = branch_align;
@@ -165,7 +165,7 @@ libfunc rename<GasBuiltin> = rename<GasBuiltin>;
 libfunc rename<Pedersen> = rename<Pedersen>;
 libfunc rename<core::option::Option::<()>> = rename<core::option::Option::<()>>;
 
-revoke_ap_tracking() -> ();
+disable_ap_tracking() -> ();
 dup<BuiltinCosts>([3]) -> ([3], [8]);
 try_fetch_gas_all([0], [1], [8]) { fallthrough([4], [5]) 9([6], [7]) };
 branch_align() -> ();
@@ -258,7 +258,7 @@ type core::option::Option::<()> = Enum<ut@core::option::Option::<()>, Unit, Unit
 type Bitwise = Bitwise;
 type u128 = u128;
 
-libfunc revoke_ap_tracking = revoke_ap_tracking;
+libfunc disable_ap_tracking = disable_ap_tracking;
 libfunc dup<BuiltinCosts> = dup<BuiltinCosts>;
 libfunc try_fetch_gas_all = try_fetch_gas_all;
 libfunc branch_align = branch_align;
@@ -282,7 +282,7 @@ libfunc rename<GasBuiltin> = rename<GasBuiltin>;
 libfunc rename<Bitwise> = rename<Bitwise>;
 libfunc rename<core::option::Option::<()>> = rename<core::option::Option::<()>>;
 
-revoke_ap_tracking() -> ();
+disable_ap_tracking() -> ();
 dup<BuiltinCosts>([3]) -> ([3], [8]);
 try_fetch_gas_all([0], [1], [8]) { fallthrough([4], [5]) 9([6], [7]) };
 branch_align() -> ();
@@ -388,7 +388,7 @@ type Bitwise = Bitwise;
 type felt = felt;
 type u128 = u128;
 
-libfunc revoke_ap_tracking = revoke_ap_tracking;
+libfunc disable_ap_tracking = disable_ap_tracking;
 libfunc dup<BuiltinCosts> = dup<BuiltinCosts>;
 libfunc try_fetch_gas_all = try_fetch_gas_all;
 libfunc branch_align = branch_align;
@@ -418,7 +418,7 @@ libfunc rename<Pedersen> = rename<Pedersen>;
 libfunc rename<Bitwise> = rename<Bitwise>;
 libfunc rename<core::option::Option::<()>> = rename<core::option::Option::<()>>;
 
-revoke_ap_tracking() -> ();
+disable_ap_tracking() -> ();
 dup<BuiltinCosts>([4]) -> ([4], [9]);
 try_fetch_gas_all([0], [1], [9]) { fallthrough([5], [6]) 9([7], [8]) };
 branch_align() -> ();
